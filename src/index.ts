@@ -8,6 +8,8 @@
 import { } from '../@types/globalobj';
 
 // 定数
+const FIRST_PAGE_ROWS: number = 2;
+const MAX_PAGE_ROWS: number = 52;
 const DEF_AOZORA_URL: string = 'https://www.aozora.gr.jp/index_pages/sakuhin_a1.html'; // スクレイピング対象サイト
 const CSV_ENCODING: string = 'SJIS'; // csv文字コード
 const CHOOSE_FILE: string = '読み込むCSVを選択してください。'; // ファイルダイアログ
@@ -37,10 +39,10 @@ dotenv({ path: path.join(__dirname, '../.env') });
 
 // list(作品一覧)
 const fixLinkSelector: string = 'body > center > table.list > tbody > ';
-// detail(zipリンク)
-const zipLinkSelector: string = 'body > table.download > tbody > tr:nth-child(2) > td:nth-child(3) > a';
 // 次へセレクタ
 const fixNextSelector: string = 'body > table > tbody > tr > td:nth-child(2) > ';
+// detail(zipリンク)
+const zipLinkSelector: string = 'body > table.download > tbody > tr:nth-child(2) > td:nth-child(3) > a';
 
 // desktopパス取得
 const dir_home = process.env[process.platform == 'win32' ? 'USERPROFILE' : 'HOME'] ?? '';
@@ -230,54 +232,44 @@ ipcMain.on('scrapeurl', async (event: any, args: any) => {
     let successCounter: number = 0;
     // 失敗数
     let failCounter: number = 0;
+    // promises
+    let urlPromises: Promise<string>[] = [];
     // URL
     const urls: string[] = Object.values(linkSelection);
-    // promises
-    let pagePromises: Promise<string>[] = [];
 
     try {
         logger.info('ipc: scrape mode');
 
-        // 合計数
-        const totalWords: number = args.length;
-        // 合計数を送る
-        event.sender.send('total', totalWords);
         // スクレイパー初期化
         await puppScraper.init();
-
         // トップへ
         await puppScraper.doGo(DEF_AOZORA_URL);
-        // 次への数
-        const linkcount: number = await puppScraper.doCountChildren(fixNextSelector);
-        // 合計取得数
-        const totalAmount: number = linkcount * 50;
-        // 合計取得数更新
-        event.sender.send('total', totalAmount);
 
-        // 収集ループ
-        for (let i = 2; i < linkcount + 2; i++) {
-            // 次へセレクタ
-            const nexLinkSelector: string = `${fixNextSelector}a:nth-child(${i})`;
-            // 次へクリック
-            await puppScraper.doClick(nexLinkSelector);
-
-            pagePromises.push(doPageScrape());
-
-            // 失敗進捗更新
-            event.sender.send('success', successCounter);
-            // 失敗進捗更新
-            event.sender.send('fail', failCounter);
-            // 次へ
-
+        // URL
+        for await (const url of urls) {
+            // トップへ
+            await puppScraper.doGo(url);
+            // wait for selector
+            await puppScraper.doWaitSelector(fixNextSelector, 3000);
+            // 次への数
+            const linkcount: number = await puppScraper.doCountChildren(fixNextSelector);
+            // 合計取得数
+            const totalAmount: number = linkcount * 50;
+            // 合計取得数更新
+            event.sender.send('total', totalAmount);
+            // 取得中URL
+            event.sender.send('statusUpdate', url);
+            // URL取得
+            urlPromises.push(doPageScrape(linkcount));
         }
+
         // 収集したページURL
-        const pageUrls: string[] = (await Promise.all(pagePromises));
+        const pageUrls: string[] = (await Promise.all(urlPromises));
 
         // 収集結果
         const urlObj: any = {
             URL: pageUrls,
         }
-
         // 現在時刻
         const nowtime: string = `${dir_desktop}\\${(new Date).toISOString().replace(/[^\d]/g, '').slice(0, 14)}`;
         // CSVファイル名
@@ -389,7 +381,41 @@ ipcMain.on('exit', async () => {
 });
 
 // do scraping
-const doDetailScrape = async (index: number): Promise<string> => {
+const doPageScrape = async (linkcnt: number): Promise<any> => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            // promises
+            let urlPromises: Promise<string>[] = [];
+
+            // 収集ループ
+            for (let i = FIRST_PAGE_ROWS; i < linkcnt + FIRST_PAGE_ROWS; i++) {
+                // 次へセレクタ
+                const nexLinkSelector: string = `${fixNextSelector}a:nth-child(${i})`;
+                // 次へクリック
+                await puppScraper.doClick(nexLinkSelector);
+                // wait for 1 sec
+                await puppScraper.doWaitForNav(3000);
+
+                // 収集ループ
+                for (let j = FIRST_PAGE_ROWS; j < MAX_PAGE_ROWS + 2; j++) {
+                    // 結果収集
+                    const result: Promise<string> = doUrlScrape(j);
+                    // 結果格納
+                    urlPromises.push(result);
+                }
+            }
+            // 結果
+            resolve(urlPromises);
+
+        } catch (e) {
+            // 結果 
+            reject('error');
+        }
+    });
+}
+
+// do scraping
+const doUrlScrape = async (index: number): Promise<string> => {
     return new Promise(async (resolve, reject) => {
         try {
             // セレクタ
@@ -428,40 +454,6 @@ const doDetailScrape = async (index: number): Promise<string> => {
                 logger.debug('no selector');
                 reject('error');
             }
-
-        } catch (e) {
-            // 結果 
-            reject('error');
-        }
-    });
-}
-
-// do scraping
-const doPageScrape = async (): Promise<any> => {
-    return new Promise(async (resolve, reject) => {
-        try {
-            // promises
-            let urlPromises: Promise<string>[] = [];
-
-            // 収集ループ
-            for (let j = 2; j < 52; j++) {
-                try {
-                    // 結果収集
-                    const result: Promise<string> = doDetailScrape(j);
-                    // 結果格納
-                    urlPromises.push(result);
-
-                } catch (err) {
-                    // エラー型
-                    if (err == 'error') {
-                        // エラー処理
-                        logger.error(err);
-                    }
-                }
-            }
-
-            // 結果
-            resolve(urlPromises);
 
         } catch (e) {
             // 結果 
