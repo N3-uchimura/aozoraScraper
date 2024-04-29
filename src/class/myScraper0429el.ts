@@ -215,19 +215,27 @@ export class Scrape {
     return new Promise(async (resolve, reject) => {
       try {
         // type element on specified value
-        const children: number = await Scrape.page.evaluate(() => {
-          return (Array.from(document.querySelector(elem)!.children).length);
-        })
-        // resolved
-        resolve(children);
+        const item: any = await Scrape.page.$(elem);
+
+        console.log(item);
+
+        // if exists
+        if (item) {
+          // resolved
+          resolve(item.length);
+
+        } else {
+          // resolved
+          resolve(0);
+        }
 
       } catch (e: unknown) {
         // if type is error
         if (e instanceof Error) {
           // error
-          console.log(`6: ${e.message}`);
+          console.log(`7: ${e.message}`);
           // reject
-          reject();
+          reject(0);
         }
       }
     });
@@ -246,7 +254,7 @@ export class Scrape {
         // if type is error
         if (e instanceof Error) {
           // error
-          console.log(`7: ${e.message}`);
+          console.log(`8: ${e.message}`);
           // reject
           reject();
         }
@@ -267,7 +275,7 @@ export class Scrape {
         // if type is error
         if (e instanceof Error) {
           // error
-          console.log(`8: ${e.message}`);
+          console.log(`9: ${e.message}`);
           // reject
           reject();
         }
@@ -288,7 +296,7 @@ export class Scrape {
         // if type is error
         if (e instanceof Error) {
           // error
-          console.log(`9: ${e.message}`);
+          console.log(`10: ${e.message}`);
           // reject
           reject();
         }
@@ -310,7 +318,7 @@ export class Scrape {
         // if type is error
         if (e instanceof Error) {
           // error
-          console.log(`8: ${e.message}`);
+          console.log(`11: ${e.message}`);
           // reject
           reject();
         }
@@ -359,7 +367,7 @@ export class Scrape {
         // if type is error
         if (e instanceof Error) {
           // error
-          console.log(`10: ${e.message}`);
+          console.log(`12: ${e.message}`);
           // reject
           reject(e.message);
         }
@@ -393,7 +401,7 @@ export class Scrape {
         // if type is error
         if (e instanceof Error) {
           // error
-          console.log(`11: ${e.message}`);
+          console.log(`13: ${e.message}`);
           // reject
           reject(e.message);
         }
@@ -413,7 +421,7 @@ export class Scrape {
         // if type is error
         if (e instanceof Error) {
           // error
-          console.log(`11: ${e.message}`);
+          console.log(`14: ${e.message}`);
           // reject
           reject();
         }
@@ -440,7 +448,7 @@ export class Scrape {
         // if type is error
         if (e instanceof Error) {
           // error
-          console.log(`12: ${e.message}`);
+          console.log(`15: ${e.message}`);
           // reject
           reject();
         }
@@ -461,7 +469,7 @@ export class Scrape {
         // if type is error
         if (e instanceof Error) {
           // error
-          console.log(`11: ${e.message}`);
+          console.log(`16: ${e.message}`);
           // reject
           reject();
         }
@@ -482,7 +490,7 @@ export class Scrape {
         // if type is error
         if (e instanceof Error) {
           // error
-          console.log(`13: ${e.message}`);
+          console.log(`17: ${e.message}`);
           // reject
           reject(false);
         }
@@ -503,7 +511,7 @@ export class Scrape {
         // if type is error
         if (e instanceof Error) {
           // error
-          console.log(`14: ${e.message}`);
+          console.log(`18: ${e.message}`);
           // reject
           reject();
         }
@@ -524,7 +532,7 @@ export class Scrape {
         // if type is error
         if (e instanceof Error) {
           // error
-          console.log(`15: ${e.message}`);
+          console.log(`19: ${e.message}`);
           // reject
           reject();
         }
@@ -564,7 +572,7 @@ const getChromePath = (): string => {
     // error
   } else {
     // error logging
-    console.log('16: no chrome path error');
+    console.log('20: no chrome path error');
     return '';
   }
 }
