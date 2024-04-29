@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="utf-8" />
+  <title>青空文庫スクレイピングツール</title>
+  <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline';">
+  <link rel="stylesheet" href="css/index.css">
+</head>
+
+<body>
+  <h1>青空文庫スクレイピングツール</h1>
+  <div class="buttonarea">
+    <div class="operation_area">
+      <h3>URL取得</h3>
+      <button class="button-g button-wide" value="url" onclick="transfer('url_page');">URL取得画面</button>
+    </div>
+    <div class="operation_area">
+      <h3>情報取得</h3>
+      <button class="button-g button-wide" value="shop" onclick="transfer('book_page');">書籍取得画面</button>
+    </div>
+    <div class="operation_area">
+      <button class="button-g button-4 button-wide" value="exit" onclick="exitApp();">終了</button>
+    </div>
+  </div>
+  <footer>
+    <p><small>&copy; 2024 Threenum.Inc All Rights Reserved. </small></p>
+  </footer>
+
+  <script>
+    // ページ遷移
+    const transfer = channel => {
+      try {
+        // 配信ページ遷移
+        window.api.send('page', channel);
+
+      } catch (e) {
+        // エラー処理
+        console.log(e);
+      }
+    }
+
+    // アプリ終了
+    const exitApp = () => {
+      try {
+        // アプリ終了
+        window.api.send('exit');
+
+      } catch (e) {
+        // エラー処理
+        console.log(e);
+      }
+    }
+  </script>
+</body>
+
+</html>
