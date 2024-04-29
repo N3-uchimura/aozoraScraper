@@ -10,7 +10,7 @@ import { } from '../@types/globalobj';
 // 定数
 const FIRST_PAGE_ROWS: number = 2;
 const MAX_PAGE_ROWS: number = 52;
-const DEF_AOZORA_URL: string = 'https://www.aozora.gr.jp/index_pages/sakuhin_a1.html'; // スクレイピング対象サイト
+const DEF_AOZORA_URL: string = 'https://www.aozora.gr.jp/index_pages/sakuhin_'; // スクレイピング対象サイトルート
 const CSV_ENCODING: string = 'SJIS'; // csv文字コード
 const CHOOSE_FILE: string = '読み込むCSVを選択してください。'; // ファイルダイアログ
 
@@ -40,63 +40,62 @@ dotenv({ path: path.join(__dirname, '../.env') });
 // list(作品一覧)
 const fixLinkSelector: string = 'body > center > table.list > tbody > ';
 // 次へセレクタ
-const fixNextSelector: string = 'body > table > tbody > tr > td:nth-child(2) > ';
-// detail(zipリンク)
+const fixNextSelector: string = 'body > table > tbody > tr > td:nth-child(2)';
+// zipリンク)
 const zipLinkSelector: string = 'body > table.download > tbody > tr:nth-child(2) > td:nth-child(3) > a';
-
 // desktopパス取得
 const dir_home = process.env[process.platform == 'win32' ? 'USERPROFILE' : 'HOME'] ?? '';
 const dir_desktop = path.join(dir_home, 'Desktop');
 
 // リンク集
 const linkSelection: any = Object.freeze({
-    あ: 'https://www.aozora.gr.jp/index_pages/sakuhin_a1.html',
-    い: 'https://www.aozora.gr.jp/index_pages/sakuhin_i1.html',
-    う: 'https://www.aozora.gr.jp/index_pages/sakuhin_u1.html',
-    え: 'https://www.aozora.gr.jp/index_pages/sakuhin_e1.html',
-    お: 'https://www.aozora.gr.jp/index_pages/sakuhin_o1.html',
-    か: 'https://www.aozora.gr.jp/index_pages/sakuhin_ka1.html',
-    き: 'https://www.aozora.gr.jp/index_pages/sakuhin_ki1.html',
-    く: 'https://www.aozora.gr.jp/index_pages/sakuhin_ku1.html',
-    け: 'https://www.aozora.gr.jp/index_pages/sakuhin_ke1.html',
-    こ: 'https://www.aozora.gr.jp/index_pages/sakuhin_ko1.html',
-    さ: 'https://www.aozora.gr.jp/index_pages/sakuhin_sa1.html',
-    し: 'https://www.aozora.gr.jp/index_pages/sakuhin_si1.html',
-    す: 'https://www.aozora.gr.jp/index_pages/sakuhin_su1.html',
-    せ: 'https://www.aozora.gr.jp/index_pages/sakuhin_se1.html',
-    そ: 'https://www.aozora.gr.jp/index_pages/sakuhin_so1.html',
-    た: 'https://www.aozora.gr.jp/index_pages/sakuhin_ta1.html',
-    ち: 'https://www.aozora.gr.jp/index_pages/sakuhin_ti1.html',
-    つ: 'https://www.aozora.gr.jp/index_pages/sakuhin_tu1.html',
-    て: 'https://www.aozora.gr.jp/index_pages/sakuhin_te1.html',
-    と: 'https://www.aozora.gr.jp/index_pages/sakuhin_to1.html',
-    な: 'https://www.aozora.gr.jp/index_pages/sakuhin_na1.html',
-    に: 'https://www.aozora.gr.jp/index_pages/sakuhin_ni1.html',
-    ぬ: 'https://www.aozora.gr.jp/index_pages/sakuhin_nu1.html',
-    ね: 'https://www.aozora.gr.jp/index_pages/sakuhin_ne1.html',
-    の: 'https://www.aozora.gr.jp/index_pages/sakuhin_no1.html',
-    は: 'https://www.aozora.gr.jp/index_pages/sakuhin_ha1.html',
-    ひ: 'https://www.aozora.gr.jp/index_pages/sakuhin_hi1.html',
-    ふ: 'https://www.aozora.gr.jp/index_pages/sakuhin_hu1.html',
-    へ: 'https://www.aozora.gr.jp/index_pages/sakuhin_he1.html',
-    ほ: 'https://www.aozora.gr.jp/index_pages/sakuhin_ho1.html',
-    ま: 'https://www.aozora.gr.jp/index_pages/sakuhin_ma1.html',
-    み: 'https://www.aozora.gr.jp/index_pages/sakuhin_mi1.html',
-    む: 'https://www.aozora.gr.jp/index_pages/sakuhin_mu1.html',
-    め: 'https://www.aozora.gr.jp/index_pages/sakuhin_me1.html',
-    も: 'https://www.aozora.gr.jp/index_pages/sakuhin_mo1.html',
-    や: 'https://www.aozora.gr.jp/index_pages/sakuhin_ya1.html',
-    ゆ: 'https://www.aozora.gr.jp/index_pages/sakuhin_yu1.html',
-    よ: 'https://www.aozora.gr.jp/index_pages/sakuhin_yo1.html',
-    ら: 'https://www.aozora.gr.jp/index_pages/sakuhin_ra1.html',
-    り: 'https://www.aozora.gr.jp/index_pages/sakuhin_ri1.html',
-    る: 'https://www.aozora.gr.jp/index_pages/sakuhin_ru1.html',
-    れ: 'https://www.aozora.gr.jp/index_pages/sakuhin_re1.html',
-    ろ: 'https://www.aozora.gr.jp/index_pages/sakuhin_ro1.html',
-    わ: 'https://www.aozora.gr.jp/index_pages/sakuhin_wa1.html',
-    を: 'https://www.aozora.gr.jp/index_pages/sakuhin_wo1.html',
-    ん: 'https://www.aozora.gr.jp/index_pages/sakuhin_nn1.html',
-    A: 'https://www.aozora.gr.jp/index_pages/sakuhin_zz1.html',
+    あ: 'a1.html',
+    い: 'i1.html',
+    う: 'u1.html',
+    え: 'e1.html',
+    お: 'o1.html',
+    か: 'ka1.html',
+    き: 'ki1.html',
+    く: 'ku1.html',
+    け: 'ke1.html',
+    こ: 'ko1.html',
+    さ: 'sa1.html',
+    し: 'si1.html',
+    す: 'su1.html',
+    せ: 'se1.html',
+    そ: 'so1.html',
+    た: 'ta1.html',
+    ち: 'ti1.html',
+    つ: 'tu1.html',
+    て: 'te1.html',
+    と: 'to1.html',
+    な: 'na1.html',
+    に: 'ni1.html',
+    ぬ: 'nu1.html',
+    ね: 'ne1.html',
+    の: 'no1.html',
+    は: 'ha1.html',
+    ひ: 'hi1.html',
+    ふ: 'hu1.html',
+    へ: 'he1.html',
+    ほ: 'ho1.html',
+    ま: 'ma1.html',
+    み: 'mi1.html',
+    む: 'mu1.html',
+    め: 'me1.html',
+    も: 'mo1.html',
+    や: 'ya1.html',
+    ゆ: 'yu1.html',
+    よ: 'yo1.html',
+    ら: 'ra1.html',
+    り: 'ri1.html',
+    る: 'ru1.html',
+    れ: 're1.html',
+    ろ: 'ro1.html',
+    わ: 'wa1.html',
+    を: 'wo1.html',
+    ん: 'nn1.html',
+    A: 'zz1.html',
 })
 
 /*
@@ -227,78 +226,27 @@ app.on('window-all-closed', () => {
  IPC
 */
 // スクレイピング
-ipcMain.on('scrapeurl', async (event: any, args: any) => {
-    // 成功数
-    let successCounter: number = 0;
-    // 失敗数
-    let failCounter: number = 0;
-    // promises
-    let urlPromises: Promise<string>[] = [];
-    // URL
-    const urls: string[] = Object.values(linkSelection);
-
+ipcMain.on('scrape', async (event: any, _: any) => {
     try {
         logger.info('ipc: scrape mode');
-
         // スクレイパー初期化
         await puppScraper.init();
-        // トップへ
-        await puppScraper.doGo(DEF_AOZORA_URL);
 
         // URL
-        for await (const url of urls) {
+        for await (const [key, url] of Object.entries(linkSelection)) {
             // トップへ
-            await puppScraper.doGo(url);
+            await puppScraper.doGo(DEF_AOZORA_URL + url);
             // wait for selector
             await puppScraper.doWaitSelector(fixNextSelector, 3000);
             // 次への数
             const linkcount: number = await puppScraper.doCountChildren(fixNextSelector);
-            // 合計取得数
-            const totalAmount: number = linkcount * 50;
             // 合計取得数更新
-            event.sender.send('total', totalAmount);
+            event.sender.send('total', linkcount);
             // 取得中URL
-            event.sender.send('statusUpdate', url);
-            // URL取得
-            urlPromises.push(doPageScrape(linkcount));
+            event.sender.send('statusUpdate', `${key} 行`);
         }
-
-        // 収集したページURL
-        const pageUrls: string[] = (await Promise.all(urlPromises));
-
-        // 収集結果
-        const urlObj: any = {
-            URL: pageUrls,
-        }
-        // 現在時刻
-        const nowtime: string = `${dir_desktop}\\${(new Date).toISOString().replace(/[^\d]/g, '').slice(0, 14)}`;
-        // CSVファイル名
-        const targetpath: string = `${nowtime}.csv`;
-        // CSV書き出し
-        await makeCsvData(urlObj, targetpath);
         // 終了メッセージ
         showmessage('info', '取得が終わりました');
-
-    } catch (e: unknown) {
-        // エラー型
-        if (e instanceof Error) {
-            failCounter++;
-            // 失敗進捗更新
-            event.sender.send('fail', failCounter);
-            // エラー処理
-            logger.error(e.message);
-        }
-    }
-});
-
-// CSV取得
-ipcMain.on('csv', async (event: any, _: any) => {
-    try {
-        logger.info('ipc: csv mode');
-        // CSVデータ取得
-        const result: any = await getCsvData();
-        // 配信ユーザ一覧返し
-        event.sender.send('shopinfoCsvlist', result);
 
     } catch (e: unknown) {
         // エラー型
@@ -380,32 +328,50 @@ ipcMain.on('exit', async () => {
     }
 });
 
-// do scraping
+// do page scraping
 const doPageScrape = async (linkcnt: number): Promise<any> => {
     return new Promise(async (resolve, reject) => {
         try {
+            // 成功数
+            let successCounter: number = 0;
+            // 失敗数
+            let failCounter: number = 0;
             // promises
-            let urlPromises: Promise<string>[] = [];
+            let pagePromises: Promise<void>[] = [];
 
             // 収集ループ
-            for (let i = FIRST_PAGE_ROWS; i < linkcnt + FIRST_PAGE_ROWS; i++) {
-                // 次へセレクタ
-                const nexLinkSelector: string = `${fixNextSelector}a:nth-child(${i})`;
-                // 次へクリック
-                await puppScraper.doClick(nexLinkSelector);
-                // wait for 1 sec
-                await puppScraper.doWaitForNav(3000);
+            for (let i = 1; i < linkcnt + 1; i++) {
+                // ページセレクタ
+                const bookLinkSelector: string = `${fixNextSelector} > a:nth-child(${i})`;
 
-                // 収集ループ
-                for (let j = FIRST_PAGE_ROWS; j < MAX_PAGE_ROWS + 2; j++) {
-                    // 結果収集
-                    const result: Promise<string> = doUrlScrape(j);
-                    // 結果格納
-                    urlPromises.push(result);
+                // wait for datalist
+                await puppScraper.doWaitSelector(bookLinkSelector, 3000);
+
+                // 対象が存在する
+                if (await puppScraper.doCheckSelector(bookLinkSelector)) {
+                    // 最初のページ以外
+                    if (i > 1) {
+                        // wait and click
+                        await Promise.all([
+                            // wait
+                            await puppScraper.doWaitForNav(1000),
+                            // ページ番号クリック
+                            await puppScraper.doClick(bookLinkSelector),
+                        ]);
+
+                    } else {
+                        // 収集ループ
+                        for (let j = FIRST_PAGE_ROWS; j < MAX_PAGE_ROWS + 2; j++) {
+                            // 結果収集
+                            const result: Promise<void> = doUrlScrape(j);
+                            // 結果格納
+                            pagePromises.push(result);
+                        }
+                    }
                 }
             }
             // 結果
-            resolve(urlPromises);
+            resolve(pagePromises);
 
         } catch (e) {
             // 結果 
@@ -414,39 +380,45 @@ const doPageScrape = async (linkcnt: number): Promise<any> => {
     });
 }
 
-// do scraping
-const doUrlScrape = async (index: number): Promise<string> => {
+// do url scraping
+const doUrlScrape = async (index: number): Promise<void> => {
     return new Promise(async (resolve, reject) => {
         try {
             // セレクタ
             const listLinkSelector: string = `tr:nth-child(${index}) > td:nth-child(2) > a`;
             // 最終セレクタ
             const finalLinkSelector: string = fixLinkSelector + listLinkSelector;
+            // promises
+            let urlPromises: Promise<any>[] = [];
+
+            // wait for datalist
+            await puppScraper.doWaitSelector(finalLinkSelector, 3000);
 
             // 対象が存在する
             if (await puppScraper.doCheckSelector(finalLinkSelector)) {
                 logger.info(`searching for ${index}`);
+                // wait and click
+                await Promise.all([
+                    // wait
+                    await puppScraper.doWaitForNav(1000),
+                    // url
+                    await puppScraper.doClick(finalLinkSelector),
+                ]);
                 // wait for datalist
-                await puppScraper.doWaitSelector(finalLinkSelector, 3000);
-                // wait for 1 sec
-                await puppScraper.doWaitForNav(3000);
-                // url
-                const tmpValues: any = await puppScraper.doSingleEval(
-                    finalLinkSelector,
-                    'href'
-                );
-                // result
-                const tmpResult: string = tmpValues.trim();
+                await puppScraper.doWaitSelector(zipLinkSelector, 3000);
 
-                // 空白ならエラー
-                if (tmpResult == '') {
-                    // 結果
-                    logger.debug('no data');
-                    reject('error');
-
-                } else {
-                    // 結果
-                    resolve(tmpResult);
+                // 対象が存在する
+                if (await puppScraper.doCheckSelector(zipLinkSelector)) {
+                    logger.info(`getting ${index}`);
+                    // wait and click
+                    await Promise.all([
+                        // wait
+                        await puppScraper.doWaitForNav(1000),
+                        // zipダウンロード
+                        await puppScraper.doClick(zipLinkSelector),
+                    ]);
+                    // zipダウンロード完了
+                    resolve();
                 }
 
             } else {
@@ -454,6 +426,32 @@ const doUrlScrape = async (index: number): Promise<string> => {
                 logger.debug('no selector');
                 reject('error');
             }
+
+        } catch (e) {
+            // 結果 
+            reject('error');
+        }
+    });
+}
+
+// do book downloading
+const doBookDownload = async (): Promise<any> => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            // promises
+            let bookPromises: Promise<string>[] = [];
+            // selector
+            const metaSelecter: string = 'body > div.metadata';
+            const bookSelecter: string = 'body > div.main_text';
+
+            // 対象が存在する
+            if (await puppScraper.doCheckSelector(metaSelecter) && await puppScraper.doCheckSelector(bookSelecter)) {
+                const megaResult: string = await puppScraper.doSingleEval(metaSelecter,);
+            }
+
+
+            // 結果
+            resolve(urlPromises);
 
         } catch (e) {
             // 結果 

@@ -453,7 +453,8 @@ export class Scrape {
     return new Promise(async (resolve, reject) => {
       try {
         // wait for time
-        await Scrape.page.waitForNavigation({ waitUntil: 'networkidle2', timeout: time });
+        await Scrape.page.waitForNavigation({ waitUntil: 'networkidle0', timeout: time });
+        // resolved
         resolve();
 
       } catch (e: unknown) {
