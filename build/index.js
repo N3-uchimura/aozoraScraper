@@ -40,69 +40,67 @@ const electron_1 = require("electron"); // electron
 const path = __importStar(require("path")); // path
 const myScraper0429el_1 = require("./class/myScraper0429el"); // scraper
 const MyLogger0301el_1 = __importDefault(require("./class/MyLogger0301el")); // logger
-// ログ設定np
-const logger = new MyLogger0301el_1.default('../../logs', 'access');
-// スクレイピング用
-const puppScraper = new myScraper0429el_1.Scrape();
 // 成功数
 let successCounter = 0;
 // 失敗数
 let failCounter = 0;
-// list(作品一覧)
-const fixLinkSelector = 'body > center > table.list > tbody > ';
+// ログ設定np
+const logger = new MyLogger0301el_1.default('../../logs', 'access');
+// スクレイピング用
+const puppScraper = new myScraper0429el_1.Scrape();
 // 次へセレクタ
 const fixNextSelector = 'body > table > tbody > tr > td:nth-child(2)';
 // zipリンク)
 const zipLinkSelector = 'body > table.download > tbody > tr:nth-child(2) > td:nth-child(3) > a';
 // リンク集
 const linkSelection = Object.freeze({
-    あ: 'a1.html',
-    い: 'i1.html',
-    う: 'u1.html',
-    え: 'e1.html',
-    お: 'o1.html',
-    か: 'ka1.html',
-    き: 'ki1.html',
-    く: 'ku1.html',
-    け: 'ke1.html',
-    こ: 'ko1.html',
-    さ: 'sa1.html',
-    し: 'si1.html',
-    す: 'su1.html',
-    せ: 'se1.html',
-    そ: 'so1.html',
-    た: 'ta1.html',
-    ち: 'ti1.html',
-    つ: 'tu1.html',
-    て: 'te1.html',
-    と: 'to1.html',
-    な: 'na1.html',
-    に: 'ni1.html',
-    ぬ: 'nu1.html',
-    ね: 'ne1.html',
-    の: 'no1.html',
-    は: 'ha1.html',
-    ひ: 'hi1.html',
-    ふ: 'hu1.html',
-    へ: 'he1.html',
-    ほ: 'ho1.html',
-    ま: 'ma1.html',
-    み: 'mi1.html',
-    む: 'mu1.html',
-    め: 'me1.html',
-    も: 'mo1.html',
-    や: 'ya1.html',
-    ゆ: 'yu1.html',
-    よ: 'yo1.html',
-    ら: 'ra1.html',
-    り: 'ri1.html',
-    る: 'ru1.html',
-    れ: 're1.html',
-    ろ: 'ro1.html',
-    わ: 'wa1.html',
-    を: 'wo1.html',
-    ん: 'nn1.html',
-    A: 'zz1.html',
+    あ: 'a',
+    い: 'i',
+    う: 'u',
+    え: 'e',
+    お: 'o',
+    か: 'ka',
+    き: 'ki',
+    く: 'ku',
+    け: 'ke',
+    こ: 'ko',
+    さ: 'sa',
+    し: 'si',
+    す: 'su',
+    せ: 'se',
+    そ: 'so',
+    た: 'ta',
+    ち: 'ti',
+    つ: 'tu',
+    て: 'te',
+    と: 'to',
+    な: 'na',
+    に: 'ni',
+    ぬ: 'nu',
+    ね: 'ne',
+    の: 'no',
+    は: 'ha',
+    ひ: 'hi',
+    ふ: 'hu',
+    へ: 'he',
+    ほ: 'ho',
+    ま: 'ma',
+    み: 'mi',
+    む: 'mu',
+    め: 'me',
+    も: 'mo',
+    や: 'ya',
+    ゆ: 'yu',
+    よ: 'yo',
+    ら: 'ra',
+    り: 'ri',
+    る: 'ru',
+    れ: 're',
+    ろ: 'ro',
+    わ: 'wa',
+    を: 'wo',
+    ん: 'nn',
+    A: 'zz',
 });
 /*
  メイン
@@ -111,8 +109,6 @@ const linkSelection = Object.freeze({
 let mainWindow;
 // 起動確認フラグ
 let isQuiting;
-// 最終配列
-let finalResultArray = [];
 // ウィンドウ作成
 const createWindow = () => {
     try {
@@ -131,7 +127,7 @@ const createWindow = () => {
         // 準備完了
         mainWindow.once('ready-to-show', () => {
             // 開発モード
-            mainWindow.webContents.openDevTools();
+            // mainWindow.webContents.openDevTools();
         });
         // 最小化のときはトレイ常駐
         mainWindow.on('minimize', (event) => {
@@ -161,10 +157,9 @@ const createWindow = () => {
     }
     catch (e) {
         // エラー処理
-        if (e instanceof Error) {
-            // メッセージ表示
-            logger.error(`${e.message})`);
-        }
+        logger.debug('err: electron thread');
+        // エラー
+        logger.error(e);
     }
 };
 // サンドボックス有効化
@@ -227,30 +222,43 @@ electron_1.ipcMain.on('scrape', async (event, _) => {
         // スクレイパー初期化
         await puppScraper.init();
         // URL
-        for await (const [key, url] of Object.entries(linkSelection)) {
-            // トップへ
-            await puppScraper.doGo(DEF_AOZORA_URL + url);
-            // wait for selector
-            await puppScraper.doWaitSelector(fixNextSelector, 3000);
-            // 対象が存在する
-            if (await puppScraper.doCheckSelector(fixNextSelector)) {
+        for await (const [key, value] of Object.entries(linkSelection)) {
+            try {
+                logger.debug(`process: getting ${key} 行`);
+                // 対象URL
+                const aozoraUrl = `${DEF_AOZORA_URL}${value}1.html`;
+                // トップへ
+                await puppScraper.doGo(aozoraUrl);
+                // 1秒ウェイト
+                await puppScraper.doWaitFor(1000);
+                // ページネーション数
+                const childLength = await puppScraper.doCountChildren(fixNextSelector);
                 // 合計取得数更新
-                event.sender.send('total', 30);
+                event.sender.send('total', childLength);
                 // 取得中URL
                 event.sender.send('statusUpdate', `${key} 行`);
                 // スクレイプ
-                await doPageScrape();
+                const result = await doPageScrape(childLength);
+                // 合計取得数更新
+                event.sender.send('update', result);
+            }
+            catch (e) {
+                // エラー処理
+                logger.debug('err1: main thread loop');
+                logger.error(e);
             }
         }
         // 終了メッセージ
         showmessage('info', '取得が終わりました');
     }
     catch (e) {
-        // エラー型
-        if (e instanceof Error) {
-            // エラー処理
-            logger.error(e.message);
-        }
+        // エラー処理
+        logger.debug('err1: main thread');
+        logger.error(e);
+    }
+    finally {
+        // スクレイパー閉じる
+        await puppScraper.doClose();
     }
 });
 // スクレイピング停止
@@ -275,111 +283,131 @@ electron_1.ipcMain.on('exit', async () => {
         }
     }
     catch (e) {
-        // エラー型
-        if (e instanceof Error) {
-            // エラー処理
-            logger.error(e.message);
-        }
+        // エラー処理
+        logger.debug('err2: exit thread');
+        logger.error(e);
     }
 });
 // do page scraping
-const doPageScrape = async () => {
+const doPageScrape = async (total) => {
     return new Promise(async (resolve, reject) => {
         try {
             logger.info('module: doPageScrape mode');
-            // promises
-            let pagePromises = [];
-            console.log(await puppScraper.doCountChildren(fixNextSelector));
+            // 対象url
+            const urls = Object.values(linkSelection);
+            // ループ用
+            const pages = makeNumberRange(1, urls.length);
+            // ループ用
+            const nums = makeNumberRange(10, total);
             // 収集ループ
-            for (let i = 1; i < 10 + 1; i++) {
-                // ページセレクタ
-                const bookLinkSelector = `${fixNextSelector} > a:nth-child(${i})`;
-                await puppScraper.doWaitFor(1000);
-                // 対象が存在する
-                if (await puppScraper.doCheckSelector(bookLinkSelector)) {
-                    console.log('hage');
-                    // 最後のページ
-                    if (i == 10) {
-                        // wait and click
-                        await Promise.all([
-                            // wait
-                            await puppScraper.doWaitFor(1000),
-                            // ページ番号クリック
-                            await puppScraper.doClick(bookLinkSelector),
-                        ]);
+            for await (const i of pages) {
+                for await (const j of nums) {
+                    try {
+                        // 対象URL
+                        const aozoraUrl = `${DEF_AOZORA_URL}${urls[i - 1]}${j}.html`;
+                        logger.debug(`process: scraping ${aozoraUrl}`);
+                        // トップへ
+                        await puppScraper.doGo(aozoraUrl);
+                        // 1秒ウェイト
+                        await puppScraper.doWaitFor(1000);
+                        // 詳細ページ
+                        await doUrlScrape();
                         // 成功
                         successCounter++;
                     }
-                    else {
-                        // 収集ループ
-                        for (let j = FIRST_PAGE_ROWS; j < MAX_PAGE_ROWS + 2; j++) {
-                            // 結果収集
-                            const result = doUrlScrape(j);
-                            // 結果格納
-                            pagePromises.push(result);
-                            // 成功
-                            successCounter++;
-                        }
+                    catch (e) {
+                        // エラー
+                        logger.debug('err3: scrape thread loop');
+                        logger.error(e);
+                        // 失敗
+                        failCounter++;
                     }
                 }
             }
             // 結果
-            resolve(pagePromises);
+            resolve({
+                success: successCounter,
+                fail: failCounter
+            });
         }
         catch (e) {
-            // 結果 
-            reject('error');
+            // エラー
+            logger.debug('err3: scrape thread');
+            logger.error(e);
             // 失敗
             failCounter++;
         }
     });
 };
 // do url scraping
-const doUrlScrape = async (index) => {
+const doUrlScrape = async () => {
     return new Promise(async (resolve, reject) => {
         try {
             logger.info('module: doUrlScrape mode');
-            // セレクタ
-            const listLinkSelector = `tr:nth-child(${index}) > td:nth-child(2) > a`;
-            // 最終セレクタ
-            const finalLinkSelector = fixLinkSelector + listLinkSelector;
-            // wait for datalist
-            await puppScraper.doWaitSelector(finalLinkSelector, 3000);
-            // 対象が存在する
-            if (await puppScraper.doCheckSelector(finalLinkSelector)) {
-                logger.info(`searching for ${index}`);
-                // wait and click
-                await Promise.all([
-                    // wait
-                    await puppScraper.doWaitFor(1000),
-                    // url
-                    await puppScraper.doClick(finalLinkSelector),
-                ]);
-                // wait for datalist
-                await puppScraper.doWaitSelector(zipLinkSelector, 3000);
-                // 対象が存在する
-                if (await puppScraper.doCheckSelector(zipLinkSelector)) {
-                    logger.info(`getting ${index}`);
-                    // wait and click
-                    await Promise.all([
-                        // wait
-                        await puppScraper.doWaitFor(1000),
-                        // zipダウンロード
-                        await puppScraper.doClick(zipLinkSelector),
-                    ]);
-                    // zipダウンロード完了
-                    resolve();
+            // ループ用
+            const links = makeNumberRange(FIRST_PAGE_ROWS, MAX_PAGE_ROWS);
+            // 収集ループ
+            for await (const j of links) {
+                try {
+                    // セレクタ
+                    const finalLinkSelector = `body > center > table.list > tbody > tr:nth-child(${j}) > td:nth-child(2) > a`;
+                    // 2秒ウェイト
+                    await puppScraper.doWaitFor(2000);
+                    // 対象が存在する
+                    if (await puppScraper.doCheckSelector(finalLinkSelector)) {
+                        logger.debug(`process: downloading No.${j - 1}`);
+                        // wait and click
+                        await Promise.all([
+                            // 1秒ウェイト
+                            await puppScraper.doWaitFor(1000),
+                            // url
+                            await puppScraper.doClick(finalLinkSelector),
+                            // 2秒ウェイト
+                            await puppScraper.doWaitFor(2000),
+                        ]);
+                        // get href
+                        const zipHref = await puppScraper.getHref(zipLinkSelector);
+                        // 対象url
+                        logger.debug(zipHref);
+                        if (zipHref.includes('.zip')) {
+                            await Promise.all([
+                                // 1秒ウェイト
+                                await puppScraper.doWaitFor(1000),
+                                // wait for datalist
+                                await puppScraper.doWaitSelector(zipLinkSelector, 3000),
+                                // zipダウンロード
+                                await puppScraper.doClick(zipLinkSelector),
+                                // 3秒ウェイト
+                                await puppScraper.doWaitFor(3000),
+                                // 前に戻る
+                                await puppScraper.doGoBack(),
+                            ]);
+                        }
+                        else {
+                            // 前に戻る
+                            await puppScraper.doGoBack();
+                        }
+                    }
+                    else {
+                        // 結果
+                        logger.debug('err4: no download link');
+                    }
+                }
+                catch (e) {
+                    // エラー
+                    logger.debug('err4: download thread loop');
+                    logger.error(e);
                 }
             }
-            else {
-                // 結果
-                logger.debug('no selector');
-                reject('error');
-            }
+            // 1秒ウェイト
+            await puppScraper.doWaitFor(1000);
+            // zipダウンロード完了
+            resolve();
         }
         catch (e) {
-            // 結果 
-            reject();
+            // エラー
+            logger.debug('err4: download thread');
+            logger.error(e);
         }
     });
 };
@@ -423,11 +451,11 @@ const showmessage = async (type, message) => {
         electron_1.dialog.showMessageBox(options);
     }
     catch (e) {
-        // エラー型
-        if (e instanceof Error) {
-            // エラー
-            logger.error(e.message);
-        }
+        // エラー
+        logger.debug('err5: show message thread');
+        logger.error(e);
     }
 };
+// 数字配列
+const makeNumberRange = (start, end) => [...new Array(end - start).keys()].map(n => n + start);
 //# sourceMappingURL=index.js.map

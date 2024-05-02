@@ -1,22 +1,26 @@
 {
   "name": "aozorascrape",
   "productName": "aozorascrape",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Electron application for scraping",
   "main": "build/index.js",
   "scripts": {
     "build": "tsc && chcp 65001",
-    "package-win": "tsc && chcp 65001 && electron-packager . --asar=true --overwrite --platform=win32 --arch=ia32 --prune=true --icon=./assets/google.ico --out=release-builds --electronVersion=28.2.0",
+    "package-win": "tsc && chcp 65001 && electron-packager . --asar --overwrite --platform=win32 --arch=ia32 --prune --icon=./assets/aozora.ico --out=release-builds --electronVersion=29.1.1",
     "start": "tsc && chcp 65001 && electron ."
   },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com:Threenum-uchimura/aozoraScraper.git"
+  },
   "keywords": [],
-  "author": "ebs-uchimura <uchimura@ebisu-do.jp>",
+  "author": "threenum-uchimura (https://github.com/Threenum-uchimura/)",
   "license": "MIT",
   "dependencies": {
     "@types/node": "^20.8.9",
     "electron-log": "^5.1.0",
     "path": "^0.12.7",
-    "puppeteer-core": "^22.7.1",
+    "puppeteer": "^22.7.1",
     "typescript": "^5.2.2"
   },
   "devDependencies": {

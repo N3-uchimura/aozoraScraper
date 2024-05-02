@@ -56,15 +56,16 @@
     });
 
     // 成功進捗更新
-    window.api.on('success', arg => {
+    window.api.on('update', arg => {
       // 成功数
-      successDom.innerHTML = arg;
+      successDom.innerHTML = arg.success;
+      // 失敗数
+      failDom.innerHTML = arg.fail;
     });
 
     // 失敗進捗更新
     window.api.on('fail', arg => {
-      // 失敗数
-      failDom.innerHTML = arg;
+
     });
 
     // ステータス更新

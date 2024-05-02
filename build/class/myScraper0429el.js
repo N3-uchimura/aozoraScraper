@@ -6,55 +6,31 @@
  * function：scraping site
  * updated: 2024/04/29
  **/
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Scrape = void 0;
 // constants
-const USER_ROOT_PATH = process.env[process.platform == "win32" ? "USERPROFILE" : "HOME"] ?? ''; // user path
-const CHROME_EXEC_PATH1 = 'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe'; // chrome.exe path1
-const CHROME_EXEC_PATH2 = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'; // chrome.exe path2
-const CHROME_EXEC_PATH3 = '\\AppData\\Local\\Google\\Chrome\\Application\\chrome.exe'; // chrome.exe path3
 const DISABLE_EXTENSIONS = "--disable-extensions"; // disable extension
 const ALLOW_INSECURE = "--allow-running-insecure-content"; // allow insecure content
 const IGNORE_CERT_ERROR = "--ignore-certificate-errors"; // ignore cert-errors
 const NO_SANDBOX = "--no-sandbox"; // no sandbox
 const DISABLE_SANDBOX = "--disable-setuid-sandbox"; // no setup sandbox
 const DISABLE_DEV_SHM = "--disable-dev-shm-usage"; // no dev shm
-const DISABLE_GPU = "--disable-gpu"; // no gpu
 const NO_FIRST_RUN = "--no-first-run"; // no first run
 const NO_ZYGOTE = "--no-zygote"; // no zygote
+const HYDE_BARS = "--hide-scrollbars"; // hyde sb
+const MUTE_AUDIO = "--mute-audio"; // mute audio
 const MAX_SCREENSIZE = "--start-maximized"; // max screen
-const DEF_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.102 Safari/537.36"; // useragent
+const DEF_USER_AGENT1 = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.102 Safari/537.36"; // useragent1
+const DEF_USER_AGENT2 = "Mozilla/5.0 (Linux; U; Android 4.0.3; ja-jp; SC-02C Build/IML74K) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30"; // useragent2
+const DEF_USER_AGENT3 = "Mozilla/5.0 (Android; Mobile; rv:21.0) Gecko/21.0 Firefox/21.0"; // useragent3
+const DEF_USER_AGENT4 = "Mozilla/5.0 (Linux; Android 4.0.3; SC-02C Build/IML74K) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.58 Mobile Safari/537.31"; // useragent4
+const DEF_USER_AGENT5 = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.82 Safari/537.36"; // useragent5
 // define modules
-const fs = __importStar(require("fs")); // fs
-const path = __importStar(require("path")); // path
 const promises_1 = require("node:timers/promises"); // wait for seconds
-const puppeteer_core_1 = __importDefault(require("puppeteer-core")); // Puppeteer for scraping
+const puppeteer_1 = __importDefault(require("puppeteer")); // Puppeteer for scraping
 // class
 class Scrape {
     // constractor
@@ -63,29 +39,31 @@ class Scrape {
         this._result = false;
         // height
         this._height = 0;
+        // height
+        this._useragents = [DEF_USER_AGENT1, DEF_USER_AGENT2, DEF_USER_AGENT3, DEF_USER_AGENT4, DEF_USER_AGENT5];
     }
     // initialize
     init() {
         return new Promise(async (resolve, reject) => {
             try {
                 const puppOptions = {
-                    headless: false, // no display mode
-                    executablePath: getChromePath(), // chrome.exe path
+                    headless: true, // no display mode
                     ignoreDefaultArgs: [DISABLE_EXTENSIONS], // ignore extensions
                     args: [
                         NO_SANDBOX,
                         DISABLE_SANDBOX,
-                        DISABLE_DEV_SHM,
-                        DISABLE_GPU,
                         NO_FIRST_RUN,
                         NO_ZYGOTE,
                         ALLOW_INSECURE,
                         IGNORE_CERT_ERROR,
                         MAX_SCREENSIZE,
+                        DISABLE_DEV_SHM,
+                        HYDE_BARS,
+                        MUTE_AUDIO
                     ], // args
                 };
                 // lauch browser
-                Scrape.browser = await puppeteer_core_1.default.launch(puppOptions);
+                Scrape.browser = await puppeteer_1.default.launch(puppOptions);
                 // create new page
                 Scrape.page = await Scrape.browser.newPage();
                 // set viewport
@@ -93,8 +71,15 @@ class Scrape {
                     width: 1920,
                     height: 1000,
                 });
+                // random
+                const arrIdx = Math.floor(Math.random() * 4);
                 // mimic agent
-                await Scrape.page.setUserAgent(DEF_USER_AGENT);
+                await Scrape.page.setUserAgent(this._useragents[arrIdx]);
+                // allow multiple downloadd
+                await Scrape.page._client().send('Page.setDownloadBehavior', {
+                    behavior: 'allow',
+                    downloadPath: 'C:\\Users\\koichi\\Downloads'
+                });
                 // resolved
                 resolve();
             }
@@ -127,6 +112,24 @@ class Scrape {
             }
         });
     }
+    // get a href
+    getHref(elem) {
+        return new Promise(async (resolve, reject) => {
+            try {
+                // resolved
+                resolve(await Scrape.page.$eval(elem, (elm) => elm.href));
+            }
+            catch (e) {
+                // if type is error
+                if (e instanceof Error) {
+                    // error
+                    console.log(`2: ${e.message}`);
+                    // reject
+                    reject(e.message);
+                }
+            }
+        });
+    }
     // press enter
     pressEnter() {
         return new Promise(async (resolve, reject) => {
@@ -143,6 +146,26 @@ class Scrape {
                     console.log(`3: ${e.message}`);
                     // reject
                     reject();
+                }
+            }
+        });
+    }
+    // goback
+    doGoBack() {
+        return new Promise(async (resolve, reject) => {
+            try {
+                // go back
+                await Scrape.page.goBack();
+                // resolved
+                resolve();
+            }
+            catch (e) {
+                // if type is error
+                if (e instanceof Error) {
+                    // error
+                    console.log(`2: ${e.message}`);
+                    // reject
+                    reject(e.message);
                 }
             }
         });
@@ -218,11 +241,11 @@ class Scrape {
         return new Promise(async (resolve, reject) => {
             try {
                 // type element on specified value
-                const item = await Scrape.page.$(elem);
+                const child = await Scrape.page.$eval(elem, (e) => e.children);
                 // if exists
-                if (item) {
+                if (child) {
                     // resolved
-                    resolve(item.length);
+                    resolve(Object.keys(child).length);
                 }
                 else {
                     // resolved
@@ -531,27 +554,4 @@ class Scrape {
     }
 }
 exports.Scrape = Scrape;
-// get chrome absolute path
-const getChromePath = () => {
-    // chrome tmp path
-    const tmpPath = path.join(USER_ROOT_PATH, CHROME_EXEC_PATH3);
-    // 32bit
-    if (fs.existsSync(CHROME_EXEC_PATH1)) {
-        return CHROME_EXEC_PATH1 ?? '';
-        // 64bit
-    }
-    else if (fs.existsSync(CHROME_EXEC_PATH2)) {
-        return CHROME_EXEC_PATH2 ?? '';
-        // user path
-    }
-    else if (fs.existsSync(tmpPath)) {
-        return tmpPath ?? '';
-        // error
-    }
-    else {
-        // error logging
-        console.log('20: no chrome path error');
-        return '';
-    }
-};
 //# sourceMappingURL=myScraper0429el.js.map
