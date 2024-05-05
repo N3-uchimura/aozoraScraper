@@ -30,10 +30,10 @@ const zipLinkSelector: string = 'body > table.download > tbody > tr:nth-child(2)
 
 // リンク集
 const linkSelection: any = Object.freeze({
-    あ: 'a',
-    い: 'i',
-    う: 'u',
-    え: 'e',
+    //あ: 'a',
+    //い: 'i',
+    //う: 'u',
+    //え: 'e',
     お: 'o',
     か: 'ka',
     き: 'ki',
@@ -77,6 +77,55 @@ const linkSelection: any = Object.freeze({
     を: 'wo',
     ん: 'nn',
     A: 'zz',
+});
+
+// リンク集
+const numSelection: any = Object.freeze({
+    //あ: 21,
+    //い: 10,
+    //う: 7,
+    //え: 5,
+    お: 14,
+    か: 20,
+    き: 14,
+    く: 8,
+    け: 8,
+    こ: 17,
+    さ: 11,
+    し: 35,
+    す: 5,
+    せ: 21,
+    そ: 6,
+    た: 12,
+    ち: 8,
+    つ: 5,
+    て: 8,
+    と: 11,
+    な: 6,
+    に: 9,
+    ぬ: 1,
+    ね: 2,
+    の: 3,
+    は: 17,
+    ひ: 10,
+    ふ: 14,
+    へ: 4,
+    ほ: 7,
+    ま: 6,
+    み: 6,
+    む: 4,
+    め: 3,
+    も: 4,
+    や: 5,
+    ゆ: 6,
+    よ: 6,
+    ら: 3,
+    り: 3,
+    る: 1,
+    れ: 2,
+    ろ: 3,
+    わ: 7,
+    A: 1,
 })
 
 /*
@@ -106,7 +155,7 @@ const createWindow = (): void => {
         // 準備完了
         mainWindow.once('ready-to-show', () => {
             // 開発モード
-            // mainWindow.webContents.openDevTools();
+            //mainWindow.webContents.openDevTools();
         });
 
         // 最小化のときはトレイ常駐
@@ -212,31 +261,134 @@ ipcMain.on('scrape', async (event: any, _: any) => {
         await puppScraper.init();
 
         // URL
-        for await (const [key, value] of Object.entries(linkSelection)) {
+        for await (const key of Object.keys(linkSelection)) {
             try {
                 logger.debug(`process: getting ${key} 行`);
-                // 対象URL
-                const aozoraUrl: string = `${DEF_AOZORA_URL}${value}1.html`;
-                // トップへ
-                await puppScraper.doGo(aozoraUrl);
-                // 1秒ウェイト
-                await puppScraper.doWaitFor(1000);
-                // ページネーション数
-                const childLength: number = await puppScraper.doCountChildren(fixNextSelector);
-                // 合計取得数更新
-                event.sender.send('total', childLength);
-                // 取得中URL
-                event.sender.send('statusUpdate', `${key} 行`);
-                // スクレイプ
-                const result: any = await doPageScrape(childLength);
-                // 合計取得数更新
-                event.sender.send('update', result);
+                // 開始位置
+                const startLine: number = 6;
+                // 対象数
+                const childLength: number = numSelection[key];
+
+                // 開始位置が最大数より小さい
+                if (childLength >= startLine) {
+                    logger.debug(`total is ${childLength}`);
+                    // 合計取得数更新
+                    event.sender.send('total', childLength * 50);
+                    // 取得中URL
+                    event.sender.send('pageUpdate', `${key} 行`);
+                    logger.debug('doPageScrape mode');
+                    // 対象url
+                    const urls: string[] = Object.values(linkSelection);
+                    // ループ用
+                    const pages: number[] = makeNumberRange(1, urls.length);
+                    // ループ用
+                    const nums: number[] = makeNumberRange(startLine, childLength + 1);
+
+                    // 収集ループ
+                    for await (const i of pages) {
+                        // データあり
+                        for await (const j of nums) {
+                            try {
+                                // 対象URL
+                                const aozoraUrl: string = `${DEF_AOZORA_URL}${urls[i - 1]}${j}.html`;
+                                logger.debug(`process: scraping ${aozoraUrl}`);
+                                // トップへ
+                                await puppScraper.doGo(aozoraUrl);
+                                // 1秒ウェイト
+                                await puppScraper.doWaitFor(1000);
+                                // 詳細ページ
+                                logger.debug('doUrlScrape mode');
+                                // ループ用
+                                const links: number[] = makeNumberRange(FIRST_PAGE_ROWS, MAX_PAGE_ROWS);
+
+                                // 収集ループ
+                                for await (const k of links) {
+                                    try {
+                                        // セレクタ
+                                        const finalLinkSelector: string = `body > center > table.list > tbody > tr:nth-child(${k}) > td:nth-child(2) > a`;
+                                        // 2秒ウェイト
+                                        await puppScraper.doWaitFor(2000);
+
+                                        // 対象が存在する
+                                        if (await puppScraper.doCheckSelector(finalLinkSelector)) {
+                                            logger.debug(`process: downloading No.${k - 1}`);
+                                            // wait and click
+                                            await Promise.all([
+                                                // 1秒ウェイト
+                                                await puppScraper.doWaitFor(1000),
+                                                // url
+                                                await puppScraper.doClick(finalLinkSelector),
+                                                // 2秒ウェイト
+                                                await puppScraper.doWaitFor(2000),
+                                            ]);
+                                            // get href
+                                            const zipHref: string = await puppScraper.getHref(zipLinkSelector);
+                                            // 対象url
+                                            logger.debug(zipHref);
+
+                                            if (zipHref.includes('.zip')) {
+                                                await Promise.all([
+                                                    // 1秒ウェイト
+                                                    await puppScraper.doWaitFor(1000),
+                                                    // wait for datalist
+                                                    await puppScraper.doWaitSelector(zipLinkSelector, 3000),
+                                                    // zipダウンロード
+                                                    await puppScraper.doClick(zipLinkSelector),
+                                                    // 3秒ウェイト
+                                                    await puppScraper.doWaitFor(3000),
+                                                    // 前に戻る
+                                                    await puppScraper.doGoBack(),
+                                                ]);
+                                                // 成功
+                                                successCounter++;
+
+                                            } else {
+                                                // 結果
+                                                logger.error('err4: not zip file');
+                                                throw new Error('err4: not zip file');
+                                            }
+
+                                        } else {
+                                            // 結果
+                                            logger.debug('err4: no download link');
+                                            throw new Error('err4: no download link');
+                                        }
+
+                                    } catch (e: unknown) {
+                                        // エラー
+                                        logger.debug('err4: download thread loop');
+                                        logger.error(e);
+                                        // 失敗
+                                        failCounter++;
+                                        // 前に戻る
+                                        await puppScraper.doGoBack();
+
+                                    } finally {
+                                        // 取得中URL
+                                        event.sender.send('statusUpdate', `process: downloading No.${k - 1}`);
+                                        // 合計取得数更新
+                                        event.sender.send('update', {
+                                            success: successCounter,
+                                            fail: failCounter,
+                                        });
+                                    }
+                                }
+                                // 1秒ウェイト
+                                await puppScraper.doWaitFor(1000);
+
+                            } catch (e: unknown) {
+                                // エラー
+                                logger.debug('err3: scrape thread loop');
+                                logger.error(e);
+                            }
+                        }
+                    }
+                }
 
             } catch (e: unknown) {
                 // エラー処理
                 logger.debug('err1: main thread loop');
                 logger.error(e);
-
             }
         }
         // 終了メッセージ
@@ -283,139 +435,6 @@ ipcMain.on('exit', async () => {
         logger.error(e);
     }
 });
-
-// do page scraping
-const doPageScrape = async (total: number): Promise<any> => {
-
-
-    return new Promise(async (resolve, reject) => {
-        try {
-            logger.info('module: doPageScrape mode');
-
-            // 対象url
-            const urls: string[] = Object.values(linkSelection);
-            // ループ用
-            const pages: number[] = makeNumberRange(1, urls.length);
-            // ループ用
-            const nums: number[] = makeNumberRange(10, total);
-
-            // 収集ループ
-            for await (const i of pages) {
-                for await (const j of nums) {
-                    try {
-                        // 対象URL
-                        const aozoraUrl: string = `${DEF_AOZORA_URL}${urls[i - 1]}${j}.html`;
-                        logger.debug(`process: scraping ${aozoraUrl}`);
-                        // トップへ
-                        await puppScraper.doGo(aozoraUrl);
-                        // 1秒ウェイト
-                        await puppScraper.doWaitFor(1000);
-                        // 詳細ページ
-                        await doUrlScrape();
-                        // 成功
-                        successCounter++;
-
-                    } catch (e: unknown) {
-                        // エラー
-                        logger.debug('err3: scrape thread loop');
-                        logger.error(e);
-                        // 失敗
-                        failCounter++;
-                    }
-                }
-            }
-            // 結果
-            resolve({
-                success: successCounter,
-                fail: failCounter
-            });
-
-        } catch (e: unknown) {
-            // エラー
-            logger.debug('err3: scrape thread');
-            logger.error(e);
-            // 失敗
-            failCounter++;
-        }
-    });
-}
-
-// do url scraping
-const doUrlScrape = async (): Promise<void> => {
-    return new Promise(async (resolve, reject) => {
-        try {
-            logger.info('module: doUrlScrape mode');
-            // ループ用
-            const links: number[] = makeNumberRange(FIRST_PAGE_ROWS, MAX_PAGE_ROWS);
-
-            // 収集ループ
-            for await (const j of links) {
-                try {
-                    // セレクタ
-                    const finalLinkSelector: string = `body > center > table.list > tbody > tr:nth-child(${j}) > td:nth-child(2) > a`;
-                    // 2秒ウェイト
-                    await puppScraper.doWaitFor(2000);
-
-                    // 対象が存在する
-                    if (await puppScraper.doCheckSelector(finalLinkSelector)) {
-                        logger.debug(`process: downloading No.${j - 1}`);
-                        // wait and click
-                        await Promise.all([
-                            // 1秒ウェイト
-                            await puppScraper.doWaitFor(1000),
-                            // url
-                            await puppScraper.doClick(finalLinkSelector),
-                            // 2秒ウェイト
-                            await puppScraper.doWaitFor(2000),
-                        ]);
-
-                        // get href
-                        const zipHref: string = await puppScraper.getHref(zipLinkSelector);
-                        // 対象url
-                        logger.debug(zipHref);
-
-                        if (zipHref.includes('.zip')) {
-                            await Promise.all([
-                                // 1秒ウェイト
-                                await puppScraper.doWaitFor(1000),
-                                // wait for datalist
-                                await puppScraper.doWaitSelector(zipLinkSelector, 3000),
-                                // zipダウンロード
-                                await puppScraper.doClick(zipLinkSelector),
-                                // 3秒ウェイト
-                                await puppScraper.doWaitFor(3000),
-                                // 前に戻る
-                                await puppScraper.doGoBack(),
-                            ]);
-
-                        } else {
-                            // 前に戻る
-                            await puppScraper.doGoBack();
-                        }
-
-                    } else {
-                        // 結果
-                        logger.debug('err4: no download link');
-                    }
-
-                } catch (e: unknown) {
-                    // エラー
-                    logger.debug('err4: download thread loop');
-                    logger.error(e);
-                }
-            }
-            // 1秒ウェイト
-            await puppScraper.doWaitFor(1000);
-            // zipダウンロード完了
-            resolve();
-
-        } catch (e: unknown) {
-            // エラー
-            logger.debug('err4: download thread');
-            logger.error(e);
-        }
-    });
-}
 
 // メッセージ表示
 const showmessage = async (type: string, message: string): Promise<void> => {

@@ -23,6 +23,7 @@
       </div>
       <div class="operation_area">
         <h3>ステータス</h3>
+        <div id="scrapingpage"></div>
         <div id="scrapingstatus"></div>
       </div>
       <div class="operation_area">
@@ -36,6 +37,8 @@
   </footer>
 
   <script>
+    // 対象行
+    const scrapingpageDom = document.getElementById('scrapingpage');
     // ステータス
     const scrapingstatusDom = document.getElementById('scrapingstatus');
     // 進捗表示
@@ -49,23 +52,31 @@
 
     // 合計数
     window.api.on('total', arg => {
-      // 成功合計数
-      successtotalDom.innerHTML = arg;
-      // 失敗合計数
-      failtotalDom.innerHTML = arg;
+      try {
+        // 成功合計数
+        successtotalDom.innerHTML = arg;
+        // 失敗合計数
+        failtotalDom.innerHTML = arg;
+
+      } catch (e) {
+        // エラー処理
+        console.log(e);
+      }
     });
 
     // 成功進捗更新
     window.api.on('update', arg => {
-      // 成功数
-      successDom.innerHTML = arg.success;
-      // 失敗数
-      failDom.innerHTML = arg.fail;
-    });
+      try {
+        console.log(arg);
+        // 成功数
+        successDom.innerHTML = arg.success;
+        // 失敗数
+        failDom.innerHTML = arg.fail;
 
-    // 失敗進捗更新
-    window.api.on('fail', arg => {
-
+      } catch (e) {
+        // エラー処理
+        console.log(e);
+      }
     });
 
     // ステータス更新
@@ -74,6 +85,19 @@
         // ステータス表示
         scrapingstatusDom.innerHTML = `
           スクレイピング中: ${arg}`;
+
+      } catch (e) {
+        // エラー処理
+        console.log(e);
+      }
+    });
+
+    // ステータス更新
+    window.api.on('pageUpdate', arg => {
+      try {
+        // ステータス表示
+        scrapingpageDom.innerHTML = `
+          対象: ${arg}`;
 
       } catch (e) {
         // エラー処理

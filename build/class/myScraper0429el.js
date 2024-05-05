@@ -57,7 +57,6 @@ class Scrape {
                         ALLOW_INSECURE,
                         IGNORE_CERT_ERROR,
                         MAX_SCREENSIZE,
-                        DISABLE_DEV_SHM,
                         HYDE_BARS,
                         MUTE_AUDIO
                     ], // args
