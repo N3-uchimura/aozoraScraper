@@ -6,15 +6,15 @@
   "main": "build/index.js",
   "scripts": {
     "build": "tsc && chcp 65001",
-    "package-win": "tsc && chcp 65001 && electron-packager . --asar --overwrite --platform=win32 --arch=ia32 --prune --icon=./assets/aozora.ico --out=release-builds --electronVersion=29.1.1",
+    "package-win": "tsc && chcp 65001 && electron-packager . --asar --overwrite --platform=win32 --arch=ia32 --icon=./assets/aozora.ico --out=release-builds --electronVersion=29.1.1",
     "start": "tsc && chcp 65001 && electron ."
   },
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com:Threenum-uchimura/aozoraScraper.git"
+    "url": "git+ssh://git@github.com:N3-uchimura/aozoraScraper.git"
   },
   "keywords": [],
-  "author": "threenum-uchimura (https://github.com/Threenum-uchimura/)",
+  "author": "numthree-uchimura (https://github.com/N3-uchimura/)",
   "license": "MIT",
   "dependencies": {
     "@types/node": "^20.8.9",

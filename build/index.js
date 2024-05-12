@@ -32,6 +32,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 // 定数
+const FIRST_BOOK_ROWS = 1;
 const FIRST_PAGE_ROWS = 2;
 const MAX_PAGE_ROWS = 52;
 const DEF_AOZORA_URL = 'https://www.aozora.gr.jp/index_pages/sakuhin_'; // スクレイピング対象サイトルート
@@ -59,37 +60,37 @@ const linkSelection = Object.freeze({
     //う: 'u',
     //え: 'e',
     //お: 'o',
-    か: 'ka',
+    //か: 'ka',
     //き: 'ki',
     //く: 'ku',
     //け: 'ke',
     //こ: 'ko',
     //さ: 'sa',
     //し: 'si',
-    す: 'su',
-    せ: 'se',
-    そ: 'so',
-    た: 'ta',
-    ち: 'ti',
-    つ: 'tu',
-    て: 'te',
-    と: 'to',
-    な: 'na',
-    に: 'ni',
-    ぬ: 'nu',
-    ね: 'ne',
-    の: 'no',
-    は: 'ha',
-    ひ: 'hi',
-    ふ: 'hu',
-    へ: 'he',
-    ほ: 'ho',
-    ま: 'ma',
-    み: 'mi',
-    む: 'mu',
-    め: 'me',
-    も: 'mo',
-    や: 'ya',
+    //す: 'su',
+    //せ: 'se',
+    //そ: 'so',
+    //た: 'ta',
+    //ち: 'ti',
+    //つ: 'tu',
+    //て: 'te',
+    //と: 'to',
+    //な: 'na',
+    //に: 'ni',
+    //ぬ: 'nu',
+    //ね: 'ne',
+    //の: 'no',
+    //は: 'ha',
+    //ひ: 'hi',
+    //ふ: 'hu',
+    //へ: 'he',
+    //ほ: 'ho',
+    //ま: 'ma',
+    //み: 'mi',
+    //む: 'mu',
+    //め: 'me',
+    //も: 'mo',
+    //や: 'ya',
     ゆ: 'yu',
     よ: 'yo',
     ら: 'ra',
@@ -109,37 +110,37 @@ const numSelection = Object.freeze({
     //う: 7,
     //え: 5,
     //お: 14,
-    か: 20,
+    //か: 20,
     //き: 14,
     //く: 8,
     //け: 8,
     //こ: 17,
     //さ: 11,
     //し: 35,
-    す: 5,
-    せ: 21,
-    そ: 6,
-    た: 12,
-    ち: 8,
-    つ: 5,
-    て: 8,
-    と: 11,
-    な: 6,
-    に: 9,
-    ぬ: 1,
-    ね: 2,
-    の: 3,
-    は: 17,
-    ひ: 10,
-    ふ: 14,
-    へ: 4,
-    ほ: 7,
-    ま: 6,
-    み: 6,
-    む: 4,
-    め: 3,
-    も: 4,
-    や: 5,
+    //す: 5,
+    //せ: 18,
+    //そ: 6,
+    //た: 12,
+    //ち: 8,
+    //つ: 5,
+    //て: 8,
+    //と: 11,
+    //な: 6,
+    //に: 9,
+    //ぬ: 1,
+    //ね: 2,
+    //の: 3,
+    //は: 17,
+    //ひ: 10,
+    //ふ: 14,
+    //へ: 4,
+    //ほ: 7,
+    //ま: 6,
+    //み: 6,
+    //む: 4,
+    //め: 3,
+    //も: 4,
+    //や: 5,
     ゆ: 6,
     よ: 6,
     ら: 3,
@@ -273,12 +274,10 @@ electron_1.ipcMain.on('scrape', async (event, _) => {
         for await (const [key, value] of Object.entries(linkSelection)) {
             try {
                 logger.debug(`process: getting ${key} 行`);
-                // 開始位置
-                const startLine = 15;
                 // 対象数
                 const childLength = numSelection[key];
                 // 開始位置が最大数より小さい
-                if (childLength >= startLine) {
+                if (childLength >= FIRST_BOOK_ROWS) {
                     logger.debug(`total is ${childLength}`);
                     // 合計取得数更新
                     event.sender.send('total', childLength * 50);
@@ -286,7 +285,7 @@ electron_1.ipcMain.on('scrape', async (event, _) => {
                     event.sender.send('pageUpdate', `${key} 行`);
                     logger.debug('doPageScrape mode');
                     // ループ用
-                    const nums = makeNumberRange(startLine, childLength + 1);
+                    const nums = makeNumberRange(FIRST_BOOK_ROWS, childLength + 1);
                     // データあり
                     for await (const j of nums) {
                         try {
