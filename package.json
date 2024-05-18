@@ -1,9 +1,9 @@
 {
-  "name": "aozorascrape",
-  "productName": "aozorascrape",
-  "version": "1.0.0",
+  "name": "aozoraScraper",
+  "productName": "aozoraScraper",
+  "version": "1.0.1",
   "description": "Electron application for scraping",
-  "main": "build/index.js",
+  "main": "build/scrape.js",
   "scripts": {
     "build": "tsc && chcp 65001",
     "package-win": "tsc && chcp 65001 && electron-packager . --asar --overwrite --platform=win32 --arch=ia32 --icon=./assets/aozora.ico --out=release-builds --electronVersion=29.1.1",
@@ -14,7 +14,10 @@
     "url": "git+ssh://git@github.com:N3-uchimura/aozoraScraper.git"
   },
   "keywords": [],
-  "author": "numthree-uchimura (https://github.com/N3-uchimura/)",
+  "author": {
+    "name": "numthree-uchimura (https://github.com/N3-uchimura/)",
+    "email": "uchimura@numthree.net"
+  },
   "license": "MIT",
   "dependencies": {
     "@types/node": "^20.8.9",
